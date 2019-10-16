@@ -51,9 +51,9 @@ public class MainActivity extends AppCompatActivity implements
     public boolean doubletap = false;
     private static final String DEBUG_TAG = "Gestures";
     final Context context = this;
-    private String timezone = "EST";
-    private double tzshift = -4;
-    final boolean daylight = true;
+    private String timezone;
+    private double tzshift;
+    final boolean daylight = false;
     private double latitude;
 
     @Override
@@ -72,6 +72,11 @@ public class MainActivity extends AppCompatActivity implements
         // Set the gesture detector as the double tap
         // listener.
         mDetector.setOnDoubleTapListener(this);
+    }
+
+    public void setTimezone() {
+        tzshift = latitude / 15.0;
+        //Log.d("Timezone 1", "" + tzshift);
     }
 
     public class solar extends SurfaceView implements Runnable {
@@ -98,21 +103,9 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public void run() {
             Looper.prepare();
-            int waitalil = 0;
             while(playing) {
+                if(timezone == null) setTimezone();
                 draw();
-                /*
-                if(doubletap) {
-                    //doubletap = false;
-                    //setTimezone();
-                    waitalil++;
-                }
-                if(doubletap & waitalil > 100) {
-                    setTimezone();
-                    doubletap = false;
-                    waitalil = 0;
-                }
-                */
             }
         }
 
@@ -128,6 +121,8 @@ public class MainActivity extends AppCompatActivity implements
                 int height = sun.getHeight(); int width = sun.getWidth();
                 canvas.drawBitmap(sun, getScreenWidth() / 2 - width / 2, getScreenHeight() / 2 - height / 2 - 150, paint);
                 paint.setTextSize(200);
+                //Log.d("Latitude", "" + latitude);
+                //Log.d("Timezone", "" + tzshift);
                 canvas.drawText(s, getScreenWidth() / 2 - 450, 300, paint);
 
                 // Draw everything to the screen
@@ -233,92 +228,6 @@ public class MainActivity extends AppCompatActivity implements
             gameThread.start();
         }
 
-        public void setTimezone() {
-            Log.d(DEBUG_TAG, "Setting up messagebox");
-            playing = false;
-            // get prompts.xml view
-            LayoutInflater li = LayoutInflater.from(context);
-            View promptsView = li.inflate(R.layout.dialogbox, null);
-
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                    context);
-
-            // set prompts.xml to alertdialog builder
-            alertDialogBuilder.setView(promptsView);
-
-            final EditText userInput = (EditText) promptsView
-                    .findViewById(R.id.editTextDialogUserInput);
-
-            // set dialog message
-            alertDialogBuilder
-                    .setCancelable(false)
-                    .setPositiveButton("OK",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,int id) {
-                                    // get user input and set it to result
-                                    // edit text
-                                    timezone = (userInput.getText()) + "";
-                                    tzshift = interpretTimezone(timezone);
-                                    playing = true;
-                                }
-                            })
-                    .setNegativeButton("Cancel",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,int id) {
-                                    playing = true;
-                                    dialog.cancel();
-                                }
-                            });
-
-            // create alert dialog
-            AlertDialog alertDialog = alertDialogBuilder.create();
-
-            // show it
-            alertDialog.show();
-        }
-
-        private double interpretTimezone(String t) {
-            double res = 0;
-            boolean daylightused = false;
-            String[] timezones = {"Eastern Time", "Australian Central Time", "Acre Time", "Australian Central Western Time", "Arabia Standard Time", "Atlantic Standard Time", "Australian Eastern Time", "Afghanistan Time", "Alaska Time", "Armenia Time", "Amazon Time", "Argentina Time", "Australian Western Time", "Azerbaijan Time", "Brunei Time", "British Indian Ocean Time",
-                    "Baker Island Time", "Bolivia Time", "Brasilia Time", "Bangladesh Time", "Bougainville Time", "Bhutan Time", "Central Africa Time", "Cocos Islands Time",
-                    "Central Time", "China Time", "Central European Time", "Chatham Time", "CHoibalsan Standard Time", "Chuuk Time", "Central Indonesia Time", "Chile Time", "Colombia Time", "Berlin Time",
-                    "Eastern Europe Time", "Eastern Greenland Time", "Eastern Indonesian Time", "Further-eastern European Time", "Falklands Island Time", "Galapagos Time", "Guyana Time", "Hong Kong Time", "Israel Standard Time", "Korea Standard Time",
-                    "Krasnoyarsk Time", "Middle European Time", "Moscow Time", "Mountain Time", "Omsk Time", "Kamchatka Time", "Philippine Time", "Pacific Time", "Uzbekistan Time", "Yekaterinburg Time",
-                    "UTC", "UTC+1", "UTC+2", "UTC+3", "UTC+4", "UTC+5", "UTC+6", "UTC+7", "UTC+8", "UTC+9", "UTC+10", "UTC+11", "UTC+12",
-                    "UTC-1", "UTC-2", "UTC-3", "UTC-4", "UTC-5", "UTC-6", "UTC-7", "UTC-8", "UTC-9", "UTC-10", "UTC-11", "UTC-12",
-                    "Eastern Standard Time", "EST", "ET"};
-            boolean[] d = {true, true, false, false, false, true, true, false, true, true, true, false, true, false, false, false,
-                    false, false, true, false, false, false, false, false,
-                    true, false, true, true, true, false, false, true, true, false,
-                    true, true, false, false, true, false, false, false, true, false,
-                    true, true, false, true, false, false, false, true, false, false,
-                    false, false, false, false, false, false, false, false, false, false, false, false, false,
-                    false, false, false, false, false, false, false, false, false, false, false, false,
-                    false, false, true};
-            double[] shifts = {-5, 9.5, -5, 8.75, 3, -4, 11, 4.5, -9, 4, -4, -3, 8, 4, 8, 6,
-                    -12, -4, -3, 6, 11, 6, 2, 6.5,
-                    -6, 8, 1, 12.75, 8, 10, 8, -4, -5, 1,
-                    2, -1, 9, 3, -4, -6, -4, 8, 2, 9,
-                    7, 1, 3, -7, 6, 12, 8, -8, 5, 5,
-                    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-                    -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12,
-                    -5, -5, -5};
-
-            for(int i = 0; i < timezones.length; i++) {
-                if(t.equals(timezones[i])) {
-                    res = shifts[i];
-                    daylightused = d[i];
-                    break;
-                }
-            }
-
-            if(daylight & daylightused) {
-                res++;
-            }
-            return res;
-        }
-
     }
 
     // This method executes when the player starts the game
@@ -416,6 +325,7 @@ public class MainActivity extends AppCompatActivity implements
                 .setNegativeButton("Cancel",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,int id) {
+                                setTimezone();
                                 dialog.cancel();
                             }
                         });
@@ -483,7 +393,11 @@ public class MainActivity extends AppCompatActivity implements
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             // Logic to handle location object
-                            latitude = location.getLatitude();
+                            latitude = location.getLongitude();
+                            Log.d("Latitude 1", "" + latitude);
+                        }
+                        else {
+                            Log.d("NO PERMISSION", "Location");
                         }
                     }
                 });
